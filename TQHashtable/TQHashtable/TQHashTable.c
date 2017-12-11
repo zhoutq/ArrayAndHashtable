@@ -288,10 +288,7 @@ void TQHashTableDestroy(TQHashTable pHashTable, DataDestroy pDataDestroy)
             free(*pCur);
             (*pCur) = NULL;
         
-            if (*pCurTmp) {
-                
-                (*pCur) = *pCurTmp; // 指针后移
-            }
+            pCur = pCurTmp; // 指针后移
         }
     }
     
