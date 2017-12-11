@@ -1,12 +1,12 @@
 //
-//  TQHashtable.c
-//  TQHashtable
+//  TQHashTable.c
+//  TQHashTable
 //
 //  Created by ztq on 2017/11/28.
 //  Copyright © 2017年 ztq. All rights reserved.
 //
 
-#include "TQHashtable.h"
+#include "TQHashTable.h"
 
 #define MAX_HASH_PRIME_ARRAY_SIZE    7
 
@@ -109,6 +109,11 @@ bool TQHashTableInsert(TQHashTable pHashTable, char *pKey, int  nKeyLength, tq t
         
         // 插入最后
         nPos = TQHashTableGetHashValue(pKey, nKeyLength, pHashTable->m_nTableAllocSize);
+        if (nPos < 0) {
+            
+            return false;
+        }
+        
         pTableEndElement = &pHashTable->m_ppElementArray[nPos];
         if (!*pTableEndElement)
         {
@@ -139,11 +144,13 @@ TQTableElement* TQHashTableFindElement(TQHashTable pHashTable, char *pKey, int  
     
     // 通过 key 获取 hash值（在hash表中的位置）
     nPos = TQHashTableGetHashValue(pKey, nKeyLength, pHashTable->m_nTableAllocSize);
-    if (nPos >= 0) {
-        // 通过位置获取到数据链表地址
-        pCur = pHashTable->m_ppElementArray[nPos];
+    if (nPos < 0) {
+        
+        return NULL;
     }
     
+    // 通过位置获取到数据链表地址
+    pCur = pHashTable->m_ppElementArray[nPos];
     while (pCur) {
         // 在链表中通过key查找指定节点
         if (pCur->m_nKeyLength == nKeyLength && memcmp(pCur->m_pKey, pKey, nKeyLength) == 0) {
@@ -169,6 +176,11 @@ bool TQHashTableDelete(TQHashTable pHashTable, char *pKey, int  nKeyLength, Data
     }
     
     nPos = TQHashTableGetHashValue(pKey, nKeyLength, pHashTable->m_nTableAllocSize);
+    if (nPos < 0) {
+
+        return false;
+    }
+    
     pCur = &pHashTable->m_ppElementArray[nPos];
     if (!(*pCur)) {
         
@@ -216,7 +228,7 @@ bool TQHashTableDelete(TQHashTable pHashTable, char *pKey, int  nKeyLength, Data
                 }
                 (*pCur)->m_pData = NULL;
                 
-                if ((*pCur)->m_pNext) { // 如果next有元素,则 前面的next等于后面的next
+                if ((*pCur)->m_pNext) { // !!! 如果next有元素,则 前面的next等于后面的next
                     
                     (*pCurTmp)->m_pNext = (*pCur)->m_pNext;
                 }
@@ -255,29 +267,37 @@ void TQHashTableDestroy(TQHashTable pHashTable, DataDestroy pDataDestroy)
             continue;
         }
         
-        while ((*pCur)->m_pNext) {
+        // 寻找并删除
+        while (*pCur) {
             
-            *pCurTmp = *pCur;
-            (*pCur) = (*pCur)->m_pNext;
+            pCurTmp = &(*pCur)->m_pNext; // 记录下个节点
+            pHashTable->m_mElementCount--; // 元素自减
             
             free((*pCur)->m_pKey);
             (*pCur)->m_pKey = NULL;
+            
+            (*pCur)->m_nKeyLength = 0;
             
             if (pDataDestroy) {
                 pDataDestroy((*pCur)->m_pData);
             }
             (*pCur)->m_pData = NULL;
             
+            (*pCur)->m_pNext = NULL;
+            
             free(*pCur);
             (*pCur) = NULL;
-            
-            (*pCur) = (*pCur)->m_pNext;
-            (*pCurTmp)->m_pNext = NULL;
+        
+            if (*pCurTmp) {
+                
+                (*pCur) = *pCurTmp; // 指针后移
+            }
         }
     }
     
     free(pHashTable->m_ppElementArray);
     pHashTable->m_ppElementArray = NULL;
+    pHashTable->m_nTableAllocSize = 0;
     free(pHashTable);
     pHashTable = NULL;
 }

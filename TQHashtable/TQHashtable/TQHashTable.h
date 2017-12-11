@@ -1,13 +1,13 @@
 //
-//  TQHashtable.h
-//  TQHashtable
+//  TQHashTable.h
+//  TQHashTable
 //
 //  Created by ztq on 2017/11/28.
 //  Copyright © 2017年 ztq. All rights reserved.
 //
 
-#ifndef TQHashtable_h
-#define TQHashtable_h
+#ifndef TQHashTable_h
+#define TQHashTable_h
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -101,4 +101,4 @@ int TQHashTableLength(TQHashTable pHashTable);
  */
 void TQHashTableDestroy(TQHashTable pHashTable, DataDestroy pDataDestroy);
 
-#endif /* TQHashtable_h */
+#endif /* TQHashTable_h */
